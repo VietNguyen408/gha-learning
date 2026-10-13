@@ -1,45 +1,43 @@
 name: Fortune Cow
 
 on:
-    push:
-        branches:
-            - main
-    workflow_dispatch:
-        inputs:
-            name:
-                descriptionn: "Who is asking"
-                type: string
-                default: "Viet"
-            animal:
-                description: "Pick your messenger"
-                type: choice
-                options:
-                    - default
-                    - tux
-                    - dragon
-                    - stegosaurus
-jobs:
-    fortune:
-        runs_on: ubuntu-latest
-        steps:
-            - name: Install fun tools
-              run: |
-                sudo apt-get update -qq
-                sudo apt-get install -y -qq cowsay fortune-mod
-            - name: Ask the cow
-                env:
-                NAME: ${{ inputs.name || 'stranger' }}
-                ANIMAL: ${{ inputs.animal || 'default' }}
-                run: |
-                MESSAGE="Hi $NAME! $(/usr/games/fortune -s)"
-                /usr/games/cowsay -f "$ANIMAL" "$MESSAGE" | tee cow.txt
+  push:
+    branches: [main]
+  workflow_dispatch:            # the manual "Run workflow" button
+    inputs:                     # a form shown when you click it
+      name:
+        description: "Who is asking?"
+        type: string
+        default: "Viet"
+      animal:
+        description: "Pick your messenger"
+        type: choice
+        options: [default, tux, dragon, stegosaurus]
+        default: dragon
 
-            - name: Write a job summary
-                run: |
-                {
-                    echo "## Your fortune"
-                    echo '```'
-                    cat cow.txt
-                    echo '```'
-                    echo "Ran on $(uname -sr) as user \`$(whoami)\`"
-                } >> "$GITHUB_STEP_SUMMARY"
+jobs:
+  fortune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install fun tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cowsay fortune-mod
+
+      - name: Ask the cow
+        env:
+          NAME: ${{ inputs.name || 'stranger' }}
+          ANIMAL: ${{ inputs.animal || 'default' }}
+        run: |
+          MESSAGE="Hi $NAME! $(/usr/games/fortune -s)"
+          /usr/games/cowsay -f "$ANIMAL" "$MESSAGE" | tee cow.txt
+
+      - name: Write a job summary
+        run: |
+          {
+            echo "## Your fortune"
+            echo '```'
+            cat cow.txt
+            echo '```'
+            echo "Ran on $(uname -sr) as user \`$(whoami)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
